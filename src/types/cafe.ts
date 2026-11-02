@@ -1,5 +1,13 @@
 export type UserRole = 'customer' | 'barista' | 'manager';
 
+export interface StaffSession {
+  isAuthenticated: boolean;
+  role: 'barista' | 'manager';
+  staffName: string;
+  badgeId: string;
+  loggedInAt: string;
+}
+
 export type MenuCategory = 'coffee' | 'viennoiserie' | 'brunch' | 'desserts' | 'tea';
 
 export interface MenuItem {

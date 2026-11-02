@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   UserRole,
+  StaffSession,
   MenuItem,
   CartItem,
   Order,
@@ -31,6 +32,15 @@ interface CafeContextType {
   setCustomerTab: (tab: 'menu' | 'reservations' | 'loyalty' | 'tracker' | 'feedback') => void;
   staffTab: 'kds' | 'inventory' | 'reservations' | 'feedback' | 'analytics';
   setStaffTab: (tab: 'kds' | 'inventory' | 'reservations' | 'feedback' | 'analytics') => void;
+
+  // Staff Authentication & RBAC
+  staffSession: StaffSession | null;
+  isStaffLoginModalOpen: boolean;
+  pendingLoginRole: 'barista' | 'manager';
+  openStaffLoginModal: (preferredRole?: 'barista' | 'manager') => void;
+  closeStaffLoginModal: () => void;
+  loginStaff: (passcode: string, role?: 'barista' | 'manager') => { success: boolean; message?: string };
+  logoutStaff: () => void;
 
   // Cart & Ordering
   menuItems: MenuItem[];
@@ -138,11 +148,28 @@ const playCafeChime = () => {
 
 export const CafeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Load saved state or defaults
-  const [userRole, setUserRole] = useState<UserRole>('customer');
+  const CACHE_VERSION = 'les_amis_v2_en_';
+
+  // Staff Session State (defaults to null so customers cannot access staff pages without login)
+  const [staffSession, setStaffSession] = useState<StaffSession | null>(() => {
+    const saved = localStorage.getItem(`${CACHE_VERSION}staff_session`);
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [isStaffLoginModalOpen, setIsStaffLoginModalOpen] = useState(false);
+  const [pendingLoginRole, setPendingLoginRole] = useState<'barista' | 'manager'>('barista');
+
+  // Enforce customer role if not authenticated
+  const [userRole, setUserRole] = useState<UserRole>(() => {
+    const savedSession = localStorage.getItem(`${CACHE_VERSION}staff_session`);
+    if (savedSession) {
+      const parsed = JSON.parse(savedSession);
+      if (parsed?.isAuthenticated) return parsed.role;
+    }
+    return 'customer';
+  });
+
   const [customerTab, setCustomerTab] = useState<'menu' | 'reservations' | 'loyalty' | 'tracker' | 'feedback'>('menu');
   const [staffTab, setStaffTab] = useState<'kds' | 'inventory' | 'reservations' | 'feedback' | 'analytics'>('kds');
-
-  const CACHE_VERSION = 'les_amis_v2_en_';
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
     const saved = localStorage.getItem(`${CACHE_VERSION}menu`);
@@ -221,6 +248,74 @@ export const CafeProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     localStorage.setItem(`${CACHE_VERSION}loyalty`, JSON.stringify(loyalty));
   }, [loyalty]);
+
+  useEffect(() => {
+    if (staffSession) {
+      localStorage.setItem(`${CACHE_VERSION}staff_session`, JSON.stringify(staffSession));
+    } else {
+      localStorage.removeItem(`${CACHE_VERSION}staff_session`);
+    }
+  }, [staffSession]);
+
+  const openStaffLoginModal = (preferredRole: 'barista' | 'manager' = 'barista') => {
+    setPendingLoginRole(preferredRole);
+    setIsStaffLoginModalOpen(true);
+  };
+
+  const closeStaffLoginModal = () => {
+    setIsStaffLoginModalOpen(false);
+  };
+
+  const loginStaff = (passcode: string, role: 'barista' | 'manager' = pendingLoginRole): { success: boolean; message?: string } => {
+    const clean = passcode.trim();
+
+    if (role === 'barista') {
+      if (clean === '1234' || clean.toLowerCase() === 'barista' || clean === 'barista123') {
+        const session: StaffSession = {
+          isAuthenticated: true,
+          role: 'barista',
+          staffName: 'Julien Moreau (Lead Barista)',
+          badgeId: 'BAR-04',
+          loggedInAt: new Date().toISOString(),
+        };
+        setStaffSession(session);
+        setUserRole('barista');
+        setStaffTab('kds');
+        setIsStaffLoginModalOpen(false);
+        playNotificationSound();
+        return { success: true };
+      }
+      return { success: false, message: 'Incorrect Barista PIN. (Demo PIN: 1234)' };
+    }
+
+    if (role === 'manager') {
+      if (clean === '7799' || clean.toLowerCase() === 'admin' || clean === 'admin2026') {
+        const session: StaffSession = {
+          isAuthenticated: true,
+          role: 'manager',
+          staffName: 'Claire Dupont (Owner & Manager)',
+          badgeId: 'MGR-01',
+          loggedInAt: new Date().toISOString(),
+        };
+        setStaffSession(session);
+        setUserRole('manager');
+        setIsStaffLoginModalOpen(false);
+        playNotificationSound();
+        return { success: true };
+      }
+      return { success: false, message: 'Incorrect Admin PIN. (Demo PIN: 7799)' };
+    }
+
+    return { success: false, message: 'Invalid role selected.' };
+  };
+
+  const logoutStaff = () => {
+    setStaffSession(null);
+    setUserRole('customer');
+    setCustomerTab('menu');
+    setIsStaffLoginModalOpen(false);
+    playNotificationSound();
+  };
 
   // Derived cart calculations
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -542,6 +637,13 @@ export const CafeProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         userRole,
         setUserRole,
+        staffSession,
+        isStaffLoginModalOpen,
+        pendingLoginRole,
+        openStaffLoginModal,
+        closeStaffLoginModal,
+        loginStaff,
+        logoutStaff,
         customerTab,
         setCustomerTab,
         staffTab,

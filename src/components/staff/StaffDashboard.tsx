@@ -16,12 +16,16 @@ import {
   ShieldCheck,
   User,
   Clock,
+  LogOut,
+  Lock,
 } from 'lucide-react';
 
 export const StaffDashboard: React.FC = () => {
   const {
     userRole,
-    setUserRole,
+    staffSession,
+    logoutStaff,
+    openStaffLoginModal,
     staffTab,
     setStaffTab,
     soundEnabled,
@@ -107,14 +111,22 @@ export const StaffDashboard: React.FC = () => {
       {/* Staff Header */}
       <div className="p-6 rounded-3xl bg-[#2B231B] text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6 border border-[#43372B]">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-widest text-[#E2B778] flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4" />
               <span>Back-Office Operations · Les Amis</span>
             </span>
             <span className="text-[#C4B5A2] text-xs">·</span>
-            <span className="text-xs text-[#DDD5C7] capitalize">
-              Role: {userRole === 'manager' ? 'Floor Manager & Owner (Full RBAC Admin)' : 'Barista & Kitchen KDS Station'}
+            <span className="text-xs text-[#DDD5C7]">
+              Active: <strong className="text-white font-medium">{staffSession?.staffName || (userRole === 'manager' ? 'Floor Manager' : 'Barista')}</strong>
+              {staffSession?.badgeId && (
+                <span className="ml-1.5 px-1.5 py-0.5 rounded bg-black/40 text-[10px] font-mono text-[#E2B778]">
+                  Badge #{staffSession.badgeId}
+                </span>
+              )}
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[#8C6D46]/40 text-[#E2B778] border border-[#8C6D46]/50 uppercase text-[10px]">
+              {userRole === 'manager' ? 'Manager & Owner Admin' : 'Barista Station'}
             </span>
           </div>
 
@@ -126,7 +138,7 @@ export const StaffDashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Live Clock & Sound Toggle */}
+        {/* Live Clock, Sound Toggle & Sign Out */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Sound Toggle */}
           <button
@@ -153,13 +165,14 @@ export const StaffDashboard: React.FC = () => {
             <span className="tabular-nums">{currentTime}</span>
           </div>
 
-          {/* Switch to Customer View quick button */}
+          {/* Sign Out and Lock terminal */}
           <button
-            onClick={() => setUserRole('customer')}
-            className="px-3 py-2 rounded-xl bg-[#E2B778] hover:bg-[#D4A563] text-[#2B231B] text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+            onClick={logoutStaff}
+            className="px-3.5 py-2 rounded-xl bg-red-950/50 hover:bg-red-900/60 text-red-200 border border-red-800/40 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+            title="Lock terminal and return to customer storefront"
           >
-            <User className="w-3.5 h-3.5" />
-            <span>Customer View</span>
+            <LogOut className="w-3.5 h-3.5 text-red-400" />
+            <span>Sign Out & Lock</span>
           </button>
         </div>
       </div>
@@ -175,7 +188,8 @@ export const StaffDashboard: React.FC = () => {
               key={tab.id}
               onClick={() => {
                 if (isRestricted) {
-                  setUserRole('manager');
+                  openStaffLoginModal('manager');
+                  return;
                 }
                 setStaffTab(tab.id);
               }}
@@ -197,8 +211,9 @@ export const StaffDashboard: React.FC = () => {
               )}
 
               {isRestricted && (
-                <span className="text-[10px] font-mono text-[#8C6D46] bg-[#F4EDE2] px-1.5 rounded">
-                  Manager Only
+                <span className="text-[10px] font-mono text-[#8C6D46] bg-[#F4EDE2] px-1.5 py-0.5 rounded flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" />
+                  Manager PIN
                 </span>
               )}
             </button>

@@ -17,6 +17,7 @@ import { CartDrawer } from './components/customer/CartDrawer';
 import { ItemCustomizerModal } from './components/customer/ItemCustomizerModal';
 import { ContactlessPaymentModal } from './components/customer/ContactlessPaymentModal';
 import { FeedbackModal } from './components/customer/FeedbackModal';
+import { StaffLoginModal } from './components/layout/StaffLoginModal';
 import { Footer } from './components/layout/Footer';
 import { FlashIntro } from './components/common/FlashIntro';
 
@@ -67,6 +68,7 @@ const CafeMainContent: React.FC<{ onReplayIntro: () => void }> = ({ onReplayIntr
         onClose={closeContactlessModal}
       />
       <FeedbackModal />
+      <StaffLoginModal />
 
       {/* Footer */}
       <Footer onReplayIntro={onReplayIntro} />

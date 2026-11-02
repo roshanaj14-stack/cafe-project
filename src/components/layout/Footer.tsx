@@ -1,13 +1,13 @@
 import React from 'react';
 import { useCafe } from '../../context/CafeContext';
-import { MapPin, Clock, Phone, ShieldCheck } from 'lucide-react';
+import { MapPin, Clock, Phone, ShieldCheck, Lock } from 'lucide-react';
 
 interface FooterProps {
   onReplayIntro?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
-  const { setUserRole, setCustomerTab } = useCafe();
+  const { setCustomerTab, openStaffLoginModal, staffSession } = useCafe();
 
   return (
     <footer className="bg-[#2B231B] text-[#C7B7A5] border-t border-[#43372B] pt-12 pb-8">
@@ -24,7 +24,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
             <div className="flex items-center gap-1.5 text-xs text-[#E2B778]">
               <span>★ 4.9 Rated on Google & Tripadvisor</span>
             </div>
-            {onReplayIntro && (
+            {onReplayIntro && !staffSession && (
               <button
                 onClick={onReplayIntro}
                 className="text-[11px] font-mono uppercase text-[#E2B778] hover:underline cursor-pointer block mt-1"
@@ -62,7 +62,6 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
               <li>
                 <button
                   onClick={() => {
-                    setUserRole('customer');
                     setCustomerTab('menu');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
@@ -74,7 +73,6 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
               <li>
                 <button
                   onClick={() => {
-                    setUserRole('customer');
                     setCustomerTab('reservations');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
@@ -86,7 +84,6 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
               <li>
                 <button
                   onClick={() => {
-                    setUserRole('customer');
                     setCustomerTab('loyalty');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
@@ -98,7 +95,6 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
               <li>
                 <button
                   onClick={() => {
-                    setUserRole('customer');
                     setCustomerTab('tracker');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
@@ -110,34 +106,28 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
             </ul>
           </div>
 
-          {/* Staff Access Control */}
+          {/* Staff Access Control (Protected by Login) */}
           <div className="space-y-2.5 text-xs">
             <h4 className="font-mono text-xs uppercase tracking-wider text-[#E2B778] font-bold">
-              Staff & Operations
+              Staff & Operations (Protected)
             </h4>
             <p className="text-[#A39486]">
-              Integrated management system: KDS barista station, inventory restock, guest feedback, and daily shift reporting.
+              Secure login required. Customer access to back-office kitchen queues and financial reports is strictly restricted.
             </p>
-            <div className="pt-1 flex flex-col gap-1.5">
+            <div className="pt-1 flex flex-col gap-2">
               <button
-                onClick={() => {
-                  setUserRole('barista');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="text-left text-[#E2B778] hover:underline cursor-pointer flex items-center gap-1"
+                onClick={() => openStaffLoginModal('barista')}
+                className="text-left text-[#E2B778] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 font-medium"
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Barista & Kitchen KDS Station</span>
+                <Lock className="w-3.5 h-3.5" />
+                <span>Barista Station Sign In</span>
               </button>
               <button
-                onClick={() => {
-                  setUserRole('manager');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="text-left text-[#E2B778] hover:underline cursor-pointer flex items-center gap-1"
+                onClick={() => openStaffLoginModal('manager')}
+                className="text-left text-[#E2B778] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 font-medium"
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Floor Manager & Owner (RBAC Admin)</span>
+                <span>Manager & Admin Sign In</span>
               </button>
             </div>
           </div>
@@ -146,7 +136,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
         {/* Bottom copyright row */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8C7A6B] gap-2">
           <span>© 2026 Les Amis Café & Bakery. All rights reserved.</span>
-          <span>Contactless Mobile Pickup · Certified Organic Sourcing</span>
+          <span>Role-Based Access Control · Protected Staff Operations</span>
         </div>
       </div>
     </footer>
