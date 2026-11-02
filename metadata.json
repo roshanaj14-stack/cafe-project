@@ -1,0 +1,6 @@
+{
+  "name": "Les Amis - Parisian Cafe & Viennoiserie",
+  "description": "Live animated artisanal cafe application featuring online ordering, contactless pickup, loyalty program, table reservations, and an integrated staff dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
